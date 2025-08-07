@@ -29,7 +29,7 @@ namespace MyFirstBlog.Services
             return _context.Posts.Select(post => post.AsDto());
         }
 
-        public PostDto GetPost(string slug)
+       public PostDto GetPost(string slug)
         {
             return _context.Posts.FirstOrDefault(p => p.Slug == slug)?.AsDto();
         }

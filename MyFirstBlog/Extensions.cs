@@ -10,6 +10,7 @@ namespace MyFirstBlog {
                 Title = post.Title,
                 Slug = post.Slug,
                 Body = post.Body,
+                Description = post.Description,
                 CreatedDate = post.CreatedDate
             };
             

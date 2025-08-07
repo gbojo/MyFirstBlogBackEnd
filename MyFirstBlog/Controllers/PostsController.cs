@@ -24,6 +24,7 @@ namespace MyFirstBlog.Controllers
         }
 
         // GET /posts/{slug}
+       
         [HttpGet("{slug}")]
         public ActionResult<PostDto> GetPost(string slug)
         {
@@ -35,28 +36,31 @@ namespace MyFirstBlog.Controllers
             return Ok(post);
         }
 
-        // POST /posts (no DB persistence — only echoes back for now)
+
+
         [HttpPost]
         public IActionResult CreatePost([FromBody] PostCreateRequest post)
         {
+            var errors = new List<string>();
+
             if (string.IsNullOrWhiteSpace(post.Title))
+                errors.Add("Title cannot be blank");
+
+            if (string.IsNullOrWhiteSpace(post.Description))
+                errors.Add("You cannot send a message with empty description");
+
+            if (errors.Any())
+                return BadRequest(new { errors });
+
+            var newPost = _postService.CreatePost(post);
+
+            return CreatedAtAction(nameof(GetPost), new { slug = newPost.Slug }, new
             {
-                return BadRequest(new { errors = new[] { "Title cannot be blank" } });
-            }
-
-            var newPost = _postService.CreatePost(post); //save to DB
-            return CreatedAtAction(nameof(GetPost), new { slug = newPost.Slug }, newPost);
-
-            var response = new
-            {
-                post = new
-                {
-                    title = post.Title,
-                    description = post.Description
-                }
-            };
-
-            return Created("", response);
+                title = newPost.Title,
+                description = newPost.Description
+            });
+            //return CreatedAtAction(nameof(GetPost), new { slug = newPost.Slug }, newPost);
         }
+
     }
 }
