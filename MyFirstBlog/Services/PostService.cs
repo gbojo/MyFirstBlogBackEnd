@@ -1,37 +1,53 @@
-namespace MyFirstBlog.Services;
-
-using MyFirstBlog.Helpers;
+﻿using MyFirstBlog.Dtos;
 using MyFirstBlog.Entities;
+using MyFirstBlog.Helpers;
+using System.Collections.Generic;
+using System.Linq;
 using System.Text.RegularExpressions;
-using MyFirstBlog.Dtos;
 
 public interface IPostService
 {
     IEnumerable<PostDto> GetPosts();
-    PostDto GetPost(String slug);
+    PostDto GetPost(string slug);
+    PostDto CreatePost(PostCreateRequest post);
 }
 
-public class PostService : IPostService
+
+namespace MyFirstBlog.Services
 {
-    private DataContext _context;
-
-    public PostService(DataContext context)
+    public class PostService : IPostService
     {
-        _context = context;
-    }
+        private readonly DataContext _context;
 
-    public IEnumerable<PostDto> GetPosts()
-    {
-        return _context.Posts.Select(post => post.AsDto());
-    }
+        public PostService(DataContext context)
+        {
+            _context = context;
+        }
 
-    public PostDto GetPost(string slug)
-    {
-        return getPost(slug).AsDto();
-    }
+        public IEnumerable<PostDto> GetPosts()
+        {
+            return _context.Posts.Select(post => post.AsDto());
+        }
 
-    private Post getPost(string slug)
-    {
-        return _context.Posts.Where(a=>a.Slug==slug.ToString()).SingleOrDefault();
+        public PostDto GetPost(string slug)
+        {
+            return _context.Posts.FirstOrDefault(p => p.Slug == slug)?.AsDto();
+        }
+
+        public PostDto CreatePost(PostCreateRequest post)
+        {
+            var entity = new Post
+            {
+                Title = post.Title,
+                Description = post.Description,
+                Slug = Regex.Replace(post.Title.ToLower(), @"\s+", "-"),
+                CreatedDate = DateTime.UtcNow
+            };
+
+            _context.Posts.Add(entity);
+            _context.SaveChanges(); // ✅ Save to DB
+
+            return entity.AsDto();
+        }
     }
 }
